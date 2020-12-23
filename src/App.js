@@ -1,13 +1,20 @@
 import React, { useState, useEffect } from 'react';
-/*import './App.css';*/
-import 'antd/dist/antd.css';
+import './App.css';
+
 import { API, Storage } from 'aws-amplify';
 import { withAuthenticator, AmplifySignOut } from '@aws-amplify/ui-react';
 import { listNotes } from './graphql/queries';
 import { createNote as createNoteMutation, deleteNote as deleteNoteMutation } from './graphql/mutations';
-import { Button, Input, message, Upload } from 'antd';
+import { Table, Space, Button, Input, message, Upload } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 
+const initialFormState = { name: '', description: '' }
+
+function App() {
+  const [notes, setNotes] = useState([]);
+  const [formData, setFormData] = useState(initialFormState);
+
+  /* Properties: File Uploader */
 const props = {
   name: 'file',
   action: 'https://www.mocky.io/v2/5cc8019d300000980a055e76',
@@ -26,11 +33,42 @@ const props = {
   },
 };
 
-const initialFormState = { name: '', description: '' }
-
-function App() {
-  const [notes, setNotes] = useState([]);
-  const [formData, setFormData] = useState(initialFormState);
+/* Properties: Table Columns */
+const columns = [
+  {
+    title: 'Id',
+    dataIndex: 'id',
+    key: 'id',
+    render: text => <a>{text}</a>,
+  },
+  {
+    title: 'Note Name',
+    dataIndex: 'name',
+    key: 'name',
+  },
+  {
+    title: 'Description',
+    dataIndex: 'description',
+    key: 'description',
+  },
+  {
+    title: 'Bild',
+    key: 'image',
+    dataIndex: 'image',
+    render: (text, record) => (
+          <img src={record.image} alt="Room for more..." style={{width: 200}} />
+    ),
+  },
+  {
+    title: 'Action',
+    key: 'action',
+    render: (text, record) => (
+      <Space size="middle">
+        <Button onClick={() => deleteNote(record)}>Delete note</Button>
+      </Space>
+    ),
+  },
+];
 
   useEffect(() => {
     fetchNotes();
@@ -93,21 +131,8 @@ function App() {
       <Button onClick={createNote}>Create Note</Button>
       <p></p>
       <p></p>
-      <table style={{marginBottom: 30}}>
-        {
-          notes.map(note => (
-            <tr>
-              <th>{note.id}</th>
-              <th>{note.name}</th>
-              <th>{note.description}</th>
-              {
-                  <th><img src={note.image} alt="Room for more..." style={{width: 200}} /></th>
-              }
-              <th><Button onClick={() => deleteNote(note)}>Delete note</Button></th>
-            </tr>
-          ))
-        }
-      </table>
+      <Table columns={columns} dataSource={notes} />
+      <p></p>
       <AmplifySignOut />
     </div>
   );
